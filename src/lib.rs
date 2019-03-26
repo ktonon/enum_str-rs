@@ -40,7 +40,7 @@ pub enum Error {
         input: String,
         /// name of the enum we are converting to
         to: String,
-    }
+    },
 }
 
 /// Trait for representing a structure as a string
@@ -62,9 +62,13 @@ See crate [Example](index.html#example) for usage.
 macro_rules! enum_str {
     ($name:ident, $(($key:ident, $value:expr),)*) => {
        #[derive(Debug, PartialEq)]
-       enum $name
+       pub enum $name
         {
             $($key),*
+        }
+
+        impl $name {
+            pub const STR_VALUES: &'static [&'static str] = &[$($value),*,];
         }
 
         impl AsStr for $name {
@@ -78,7 +82,8 @@ macro_rules! enum_str {
         }
 
         impl FromStr for $name {
-            type Err = Error;
+
+            type Err = enum_str::Error;
 
             fn from_str(val: &str) -> Result<Self, Self::Err> {
                 match val
@@ -86,7 +91,7 @@ macro_rules! enum_str {
                     $(
                         $value => Ok($name::$key)
                     ),*,
-                    _ => Err(Error::ParseStrError{input: val.to_string(), to: stringify!($name).to_string()})
+                    _ => Err(enum_str::Error::ParseStrError{input: val.to_string(), to: stringify!($name).to_string()})
                 }
             }
         }
